@@ -156,8 +156,8 @@ public:
   T* GetThreadData() const { return m_thread_data; }
 
  private: 
-  T* m_thread_data; // a set of data private to this thread (often not uses)
   WorkQueue<W*>& m_queue; // a queue of worker units
+  T* m_thread_data; // a set of data private to this thread (often not uses)
   
 };
 
