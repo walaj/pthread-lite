@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/walaj/pthread-lite.svg?branch=master)](https://travis-ci.org/walaj/pthread-lite)
+
 ## *pthread-lite* Light-weight header library for C++ concurrency with pthread
 
 *pthread-lite* is a modification of ``wqueue.h`` by Victor Hargrove. It unites the
