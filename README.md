@@ -39,7 +39,7 @@ struct MyThreadItem {
 
 
 /** Define a work-item class to hold data for specific task
- * (eg some operation on a set of sequences stored in char array(
+ * (e.g. some operation on a set of sequences stored in char array)
  */
 class MyWorkItem {
 
@@ -48,12 +48,12 @@ class MyWorkItem {
     
     // define the actual work to be done
     bool runStringProcessing(MyThreadItem* thread_data) {
-       // do something with the data ... 
+      // do something with the data ... 
       size_t results = 0;
       if (m_data)
-	results = strlen(m_data);  // some results from this operation...
-      thread_data->AddHits(results);     // store the results in the thread-level store
-      if (m_data) free(m_data);         // done with this unit, so clear data
+	results = strlen(m_data);      // some results from this operation...
+      thread_data->AddHits(results);   // store the results in the thread-level store
+      if (m_data) free(m_data);        // done with this unit, so clear data
     }   
 
     // always include a run function that takes only
@@ -79,8 +79,8 @@ int main() {
   // establish and start the threads
   size_t num_cores = 8;
   for (int i = 0; i < num_cores; ++i) {
-    MyThreadItem * tu  = new MyThreadItem(i);  // create the thread-specific data. Must be on heap to make useful after this loop
-    ConsumerThread<MyWorkItem, MyThreadItem>* threadr = // establish new thread to draw from queue
+    MyThreadItem * tu  = new MyThreadItem(i);  // create the thread-specific data, must be on heap.
+    ConsumerThread<MyWorkItem, MyThreadItem>* threadr =        // establish new thread to draw from queue
       new ConsumerThread<MyWorkItem, MyThreadItem>(queue, tu); // always takes WorkQueue and some thread item
     threadr->start(); 
     threadqueue.push_back(threadr); // add thread to the threadqueue
@@ -90,10 +90,10 @@ int main() {
   for (int i = 0; i < 1000; ++i) {
 
     // establish some chunk of data...
-    char * data = (char*)malloc(1000); 
-    for (size_t j = 0; j < 999; ++j)
+    char * data = (char*)malloc(100000 + 1); 
+    for (size_t j = 0; j < 100000; ++j)
       data[j] = 'a';
-    data[999] = '\0';
+    data[100000] = '\0';
 
     // add to work item and then to queue for processing
     // must be on heap, since dealloc is done inside ConsumerThread
@@ -106,6 +106,7 @@ int main() {
   for (int i = 0; i < num_cores; ++i) 
     threadqueue[i]->join();
 
+  // display the results
   for (int i = 0; i < num_cores; ++i) {
     const MyThreadItem * td = threadqueue[i]->GetThreadData();
     std::cerr << "thread " << td->id << " results " << td->hit_counts << std::endl;
