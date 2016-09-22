@@ -44,15 +44,19 @@ struct MyThreadItem {
 class MyWorkItem {
 
   public:
-    MyWorkItem(char* data) : m_data(data) {}
+  MyWorkItem(char* data, size_t len) : m_data(data), m_len(len) {}
     
     // define the actual work to be done
     bool runStringProcessing(MyThreadItem* thread_data) {
-      // do something with the data ... 
+      // do something with the data ... (silly example here)
       size_t results = 0;
-      if (m_data)
-	results = strlen(m_data);      // some results from this operation...
+      if (m_data) 
+	for (size_t n = 0; n < 1000; ++n) 
+	  for (size_t i = 0; i < m_len; ++i)
+	    if (m_data[i] == 'a')
+	      ++results;
       thread_data->AddHits(results);   // store the results in the thread-level store
+      
       if (m_data) free(m_data);        // done with this unit, so clear data
     }   
 
@@ -67,6 +71,7 @@ class MyWorkItem {
 
     // some chunk of data to be processed as one unit on one thread
     char * m_data;
+    size_t m_len;
 
 };
 
@@ -76,8 +81,24 @@ int main() {
   WorkQueue<MyWorkItem*>  queue; // queue of work items to be processed by threads
   std::vector<ConsumerThread<MyWorkItem, MyThreadItem>* > threadqueue;
 
+  // add 1000 work jobs to the WorkQueue
+  for (int i = 0; i < 5000; ++i) {
+
+    // establish some chunk of data...
+    const size_t len = 5000;
+    char * data = (char*)malloc(len + 1); 
+    for (size_t j = 0; j < len; ++j)
+      data[j] = 'a';
+    data[len] = '\0';
+
+    // add to work item and then to queue for processing
+    // must be on heap, since dealloc is done inside ConsumerThread
+    MyWorkItem * wu = new MyWorkItem(data, len);
+    queue.add(wu);    
+  } 
+
   // establish and start the threads
-  size_t num_cores = 8;
+  size_t num_cores = 2;
   for (int i = 0; i < num_cores; ++i) {
     MyThreadItem * tu  = new MyThreadItem(i);  // create the thread-specific data, must be on heap.
     ConsumerThread<MyWorkItem, MyThreadItem>* threadr =        // establish new thread to draw from queue
@@ -85,22 +106,6 @@ int main() {
     threadr->start(); 
     threadqueue.push_back(threadr); // add thread to the threadqueue
   }
-
-  // add 1000 work jobs to the WorkQueue
-  for (int i = 0; i < 1000; ++i) {
-
-    // establish some chunk of data...
-    char * data = (char*)malloc(100000 + 1); 
-    for (size_t j = 0; j < 100000; ++j)
-      data[j] = 'a';
-    data[100000] = '\0';
-
-    // add to work item and then to queue for processing
-    // must be on heap, since dealloc is done inside ConsumerThread
-    MyWorkItem * wu = new MyWorkItem(data);
-    queue.add(wu);    
-  } 
-
 
   // wait for the threads to finish
   for (int i = 0; i < num_cores; ++i) 
