@@ -6,29 +6,22 @@
 
 /** Define a thread-item class to hold data, etc private
 * to each thread. For instance, this can store output from a thread that
-* can be dumped to a file after all processing are done. This is useful
+* can be dumped to a file after all processing is done. This is useful
 * because writing to a file in a multi-threaded program requires a mutex lock,
-* thus halting work on other threads.
+* thus halting work on other threads. Alternatively useful for holding a pointer
+* for random access to a file, so multiple threads can randomly access the same file
 */
-class MyThreadItem {
+struct MyThreadItem {
   
-  public:
-    MyThreadItem(size_t id) : m_id(id), m_hit_counts(0) {}
+  MyThreadItem(size_t i) : id(i), hit_counts(0) {}
   
-    // example accessor for storing results for this thread
-    void AddHits(size_t new_hits) { m_hit_counts += new_hits; } 
-  
-  // get the thread id
-  size_t ID() const { return m_id; }
+  // example accessor for storing results for this thread
+  void AddHits(size_t new_hits) { hit_counts += new_hits; } 
 
-  // get the results back
-  size_t Results() const { return m_hit_counts; }
+  size_t id; // id to identify thread	
 
-  private:
-    size_t m_id; // id to identify thread	
-
-    // include any number of thread-specific data below
-    size_t m_hit_counts; // results from all jobs processed on this thread
+  // include any number of thread-specific data below
+  size_t hit_counts; // results from all jobs processed on this thread
 };
 
 
@@ -102,7 +95,7 @@ int main() {
 
   for (int i = 0; i < num_cores; ++i) {
     const MyThreadItem * td = threadqueue[i]->GetThreadData();
-    std::cerr << "thread " << td->ID() << " results " << td->Results() << std::endl;
+    std::cerr << "thread " << td->id << " results " << td->hit_counts << std::endl;
   }
   return 0;
 }
